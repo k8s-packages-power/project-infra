@@ -25,7 +25,16 @@ cd ..;
 
 # update the rpm spec file with the latest stable version and commit
 version=$(echo ${latest_stable_kubernetes_version} | cut -f1 -d-)
+sub_version=$(echo ${latest_stable_kubernetes_version} | cut -f2 -d- -s| sed -e 's/\.//g')
+
 sed -i "s/^Version:.*/Version:        ${version}/" rpmbuild/SPECS/kubernetes.spec
+
+if [ ! -z $sub_version ]; then
+  sed -i "s/^Release:.*/Release:        1.${sub_version}.git%{shortcommit}%{?dist}/" rpmbuild/SPECS/kubernetes.spec
+else
+  sed -i "s/^Release:.*/Release:        1.git%{shortcommit}%{?dist}/" rpmbuild/SPECS/kubernetes.spec
+fi
+
 sed -i "s/^%global commit.*/%global commit          ${latest_stable_kubernetes_commit}/" rpmbuild/SPECS/kubernetes.spec
 sed -i "s/^export KUBE_GIT_VERSION=.*/KUBE_GIT_VERSION=${latest_stable_kubernetes_version-${short_commit}}/" rpmbuild/SPECS/kubernetes.spec
 

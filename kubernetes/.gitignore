@@ -1,5 +1,6 @@
+contrib/
+kubernetes/
 rpmbuild/BUILD/
 rpmbuild/BUILDROOT/
-rpmbuild/RPM/
-rpmbuild/SOURCES/
+rpmbuild/RPMS/
 rpmbuild/SRPMS/

@@ -40,7 +40,7 @@
 
 Name:		kubernetes
 Version:        1.4.0
-Release:	0.26.git%{shortcommit}%{?dist}
+Release:        1.beta9.git%{shortcommit}%{?dist}
 Summary:        Container cluster management
 License:        ASL 2.0
 URL:            %{import_path}
@@ -163,20 +163,21 @@ KUBE_GIT_VERSION=1.4.0-beta.9
 hack/build-go.sh --use_go_build
 #hack/build-go.sh --use_go_build cmd/kube-version-change
 
+hack/update-generated-docs.sh
+
 # convert md to man
-#pushd docs
-#pushd admin
-#cp kube-apiserver.md kube-controller-manager.md kube-proxy.md kube-scheduler.md kubelet.md ..
-#popd
-#cp %{SOURCE2} genmanpages.sh
-#bash genmanpages.sh
-#popd
+pushd docs
+pushd admin
+cp kube-apiserver.md kube-controller-manager.md kube-proxy.md kube-scheduler.md kubelet.md ..
+popd
+cp %{SOURCE2} genmanpages.sh
+bash genmanpages.sh
+popd
 
 %install
 . hack/lib/init.sh
 kube::golang::setup_env
 
-#output_path="/root/rpmbuild/BUILD/kubernetes-3eed1e3be6848b877ff80a93da3785d9034d0a4f/_output/local/go/bin"
 output_path="${KUBE_OUTPUT_BINPATH}/$(kube::golang::current_platform)"
 
 binaries=(kube-apiserver kube-controller-manager kube-scheduler kube-proxy kubelet kubectl )
@@ -188,6 +189,11 @@ done
 
 # install the bash completion
 install -d -m 0755 %{buildroot}%{_datadir}/bash-completion/completions/
+if [ ! -e "contrib/completions/bash/kubectl" ]; then
+  install -d -m 0755 contrib/completions/bash
+  ${output_path}/kubectl completion bash > contrib/completions/bash/kubectl
+fi 
+
 install -t %{buildroot}%{_datadir}/bash-completion/completions/ contrib/completions/bash/kubectl
 
 # install config files
@@ -251,9 +257,9 @@ fi
 
 %files master
 %doc README.md LICENSE CONTRIB.md CONTRIBUTING.md DESIGN.md
-#%{_mandir}/man1/kube-apiserver.1*
-#%{_mandir}/man1/kube-controller-manager.1*
-#%{_mandir}/man1/kube-scheduler.1*
+%{_mandir}/man1/kube-apiserver.1*
+%{_mandir}/man1/kube-controller-manager.1*
+%{_mandir}/man1/kube-scheduler.1*
 %attr(754, -, kube) %caps(cap_net_bind_service=ep) %{_bindir}/kube-apiserver
 %{_bindir}/kube-controller-manager
 %{_bindir}/kube-scheduler
@@ -270,8 +276,8 @@ fi
 
 %files node
 %doc README.md LICENSE CONTRIB.md CONTRIBUTING.md DESIGN.md
-#%{_mandir}/man1/kubelet.1*
-#%{_mandir}/man1/kube-proxy.1*
+%{_mandir}/man1/kubelet.1*
+%{_mandir}/man1/kube-proxy.1*
 %{_bindir}/kubelet
 %{_bindir}/kube-proxy
 #%{_bindir}/kube-version-change
