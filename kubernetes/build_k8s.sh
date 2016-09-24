@@ -65,5 +65,6 @@ then
   rpm_file=`ls rpmbuild/RPMS/*/kubernetes*`
   echo -e "\n\n\nFinished compiling kubernetes version: $latest_stable_kubernetes_version \nThe file is located here: ./$rpm_file"
 else
-  echo -e "\n\n\nKubernetes compilation failed.\n" 
+  echo -e "\n\n\nKubernetes compilation failed.\n"
+  exit 1
 fi
