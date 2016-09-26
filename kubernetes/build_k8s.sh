@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # sudo yum install rpm-build golang etcd -y
 # sudo yum groupinstall "Development Tools" -y
@@ -6,14 +6,27 @@
 # optionally you can specify ./build_latest_stable_kubernetes.sh v0.18.2
 
 # Find the latest tagged stable release in the master branch, or use $1 tag
-cd kubernetes
-if [ $# -eq 0 ]
+
+if [ $# -lt 1 ]
+then
+  echo "Usage: `basename "$0"` <kubernetes_path> [version]"
+  exit 1
+fi
+
+# Remove existing kubernetes and contrib code.
+rm -rf kubernetes;rm -rf contrib
+
+echo "Copying kubernetes from \"$1\" to current directory..."
+cp -r $1 .;cd kubernetes
+echo "DONE"
+
+if [ $# -eq 1 ]
   then
     latest_stable_kubernetes_version=`git describe --abbrev=0 --tags|cut -c 2-`
   else
-    if [ $1 = `git tag -l $1` ]
+    if [ $2 = `git tag -l $2` ]
       then
-        latest_stable_kubernetes_version=`echo $1|cut -c 2-`
+        latest_stable_kubernetes_version=`echo $2|cut -c 2-`
       else
         echo "That is not a valid kubernetes version tag."
         exit 1
@@ -36,7 +49,7 @@ else
 fi
 
 sed -i "s/^%global commit.*/%global commit          ${latest_stable_kubernetes_commit}/" rpmbuild/SPECS/kubernetes.spec
-sed -i "s/^export KUBE_GIT_VERSION=.*/KUBE_GIT_VERSION=${latest_stable_kubernetes_version-${short_commit}}/" rpmbuild/SPECS/kubernetes.spec
+sed -i "s/^export KUBE_GIT_VERSION=.*/export KUBE_GIT_VERSION=${latest_stable_kubernetes_version-${short_commit}}/" rpmbuild/SPECS/kubernetes.spec
 
 # clean up any old builds. tar up the latest stable commit, and throw it into rpmbuild/SOURCES, and prepare for the build
 cd kubernetes; git checkout $latest_stable_kubernetes_commit &> /dev/null; cd ..;
@@ -57,8 +70,6 @@ tar -c contrib --transform s/contrib/contrib-${con_commit}/ | gzip -9 &> "rpmbui
 # start compiling kubernetes
 echo -e "Starting the compilation of kubernetes version: $latest_stable_kubernetes_version \n\n\n"
 rpmbuild -ba --define "_topdir `pwd`/rpmbuild" rpmbuild/SPECS/kubernetes.spec
-
-#cd kubernetes; git checkout master &> /dev/null; cd ..;
 
 if [ $? -eq 0 ]
 then

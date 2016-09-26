@@ -158,7 +158,7 @@ mv ../%{con_repo}-%{con_commit}/init contrib/init
 %build
 export KUBE_GIT_TREE_STATE="clean"
 export KUBE_GIT_COMMIT=%{commit}
-KUBE_GIT_VERSION=1.4.0-beta.9
+export KUBE_GIT_VERSION=1.4.0-beta.9
 
 hack/build-go.sh --use_go_build
 #hack/build-go.sh --use_go_build cmd/kube-version-change
