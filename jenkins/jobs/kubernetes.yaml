@@ -1,0 +1,30 @@
+- job-template:
+    name: k8s_release_build
+
+    scm:
+        - git:
+            url: https://github.com/kubernetes/kubernetes.git
+            refspec: +refs/tags/*:refs/remotes/origin/tags/*
+            branches:
+                - "*/tags/*"
+            basedir: kubernetes
+            per-build-tag: false
+    triggers:
+        - pollscm:
+            cron: "* * * * *"
+    wrappers:
+        - timestamps
+        - workspace-cleanup
+    builders:
+        - build-k8s
+        - build-name-setter:
+            name: 'version.txt'
+            file: true
+    publishers:
+        - archive:
+            artifacts: "project-infra/kubernetes/rpmbuild/SRPMS/*.rpm, project-infra/kubernetes/rpmbuild/RPMS/**/*.rpm"
+
+- project:
+    name: kubernetes-build-project
+    jobs:
+        - k8s_release_build

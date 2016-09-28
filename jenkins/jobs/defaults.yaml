@@ -1,0 +1,7 @@
+- defaults:
+    name: global
+    project-type: freestyle
+
+    wrappers:
+      - timestamps
+      - workspace-cleanup

@@ -1,0 +1,158 @@
+- builder:
+    name: init-env-vars
+    builders:
+        - shell: |
+            echo "DOCKER_MASTER_URL=https://master.dockerproject.org" > env.properties
+            echo "DOCKER_BIN_DIR=${WORKSPACE}/docker_bin" >> env.properties
+            echo "DOCKER_SRC_DIR=${WORKSPACE}/docker_src" >> env.properties
+
+- builder:
+    name: update-env-vars
+    builders:
+        - inject:
+            properties-file: env.properties
+
+- builder:
+    name: download-docker-image
+    builders:
+        - shell: |
+            #!/bin/bash
+            
+            # Pre-req 
+            # Yum packages - git, golang
+            # append "ubuntu ALL=(ALL) NOPASSWD:ALL" line to /etc/sudoers
+            
+            
+            DOCKER_MASTER_URL="https://master.dockerproject.org"
+            DOCKER_BIN_DIR=${WORKSPACE}/docker_bin
+            DOCKER_SRC_DIR=${WORKSPACE}/docker_src
+            
+            arch_op=`uname -p`
+            
+            if [ $arch_op = "x86_64" ]; then
+                ARCH="amd64"
+            elif [ $arch_op = "ppcle64" ]; then
+                ARCH="ppc64le"
+            else
+                echo "Unsupported architecture : $arch_op\n"
+            fi
+            
+            apt-get -qq update && apt-get -qq install -y \
+            apparmor aufs-tools automake \
+            bash-completion btrfs-tools build-essential \
+            createrepo curl \
+            dpkg-sig git \
+            devmapper-* \
+            golang-go \
+            iptables jq \
+            make net-tools \
+            lvm2-* \
+            libapparmor-dev libcap-dev libltdl-dev libsqlite3-dev libsystemd-dev libtool \
+            mercurial pkg-config \
+            pkg-config python-dev python-mock python-pip python-websocket \
+            xfsprogs tar \
+            --no-install-recommends 
+            
+            mkdir -p $DOCKER_BIN_DIR
+            cd $DOCKER_BIN_DIR
+            export PATH=$DOCKER_BIN_DIR:$PATH
+            
+            
+            declare -a docker_bins=("docker-1.12.0-dev" "dockerd-1.12.0-dev" "docker-containerd" "docker-runc" "docker-containerd-shim")
+            
+            for i in "${docker_bins[@]}"
+            do
+               echo "Downloading : $DOCKER_MASTER_URL/linux/$ARCH/$i"
+               wget -q $DOCKER_MASTER_URL/linux/$ARCH/$i -O $i
+            done
+            
+            echo "Killing any previous running docker process..."; pkill -9 docker; pkill -9 docker-containerd
+            
+            chmod +x *
+            mv docker-*-dev docker
+            mv dockerd-*-dev dockerd
+            cp * /usr/local/bin
+
+- builder:
+    name: start-docker-deamon
+    builders:
+      - shell: |
+            #!/bin/bash
+            echo "Starting the docker daemon..."
+            
+            $DOCKER_BIN_DIR/docker daemon -D &> /tmp/docker.log &
+            
+            echo "Sleeping for 10 seconds to daemon to come up..."
+            sleep 10
+            
+            docker version
+
+- builder:
+    name: clean-docker-images-and-container
+    builders:
+      - shell: |
+            #!/bin/bash
+            echo "Deleting all the containers..."
+            for process in `docker ps -a -q`; do
+                echo "Deleting container : $process"
+                docker rm $process
+            done
+
+            echo "Deleting all the images..."
+            for image in `docker images -q -a`; do
+                echo "Deleting image : $image"
+                docker rmi $image
+            done
+
+- builder:
+    name: run-integration-test
+    builders:
+      - shell: |
+            #!/bin/bash
+            
+            SERVER_COMMIT=`docker version --format '{{.Server.GitCommit}}' | cut -d '/' -f1`
+            
+            cd $DOCKER_SRC_DIR
+            git checkout $SERVER_COMMIT
+            AUTO_GOPATH=1 ./hack/make.sh test-integration-cli
+
+- builder:
+    name: git-clone-benchmarks
+    builders:
+      - shell: |
+            #!/bin/bash
+            git clone https://github.com/bpradipt/container-benchmarks.git
+
+- builder:
+    name: run-benchmark
+    builders:
+      - shell: |
+            #!/bin/bash
+            cd container-benchmarks
+            ./host_setup.sh
+            ./container_setup.sh  
+            ./container_run.sh wordpress
+
+- builder:
+    name: build-k8s
+    builders:
+      - shell: |
+            export PATH=/usr/local/go/bin:$PATH
+            export GOPATH=~/goprojects
+
+            mkdir -p $GOPATH
+            export PATH=$GOPATH/bin:$PATH
+
+            go get -u github.com/jteeuwen/go-bindata/go-bindata
+            go get github.com/cpuguy83/go-md2man
+
+            cd ${WORKSPACE}/kubernetes
+            git branch
+            git status
+            git describe --tags > ../version.txt
+            cd ..
+
+            git clone https://github.com/k8s-packages-power/project-infra.git
+            cp -r kubernetes project-infra/kubernetes
+            cd project-infra/kubernetes
+            ./build_k8s.sh ${WORKSPACE}/kubernetes
