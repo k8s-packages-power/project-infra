@@ -1,0 +1,33 @@
+- job-template:
+    name: docker-test-project
+
+    scm:
+        - git:
+            url: https://github.com/docker/docker.git
+            branches:
+                - master
+            basedir: docker_src
+    builders:
+        - init-env-vars
+        - update-env-vars
+        - download-docker-image
+        - start-docker-deamon
+        - run-integration-test
+
+- job-template:
+    name: docker-test-benchmark
+    node: x86-docker-slave
+    builders:
+        - init-env-vars
+        - update-env-vars
+        - download-docker-image
+        - start-docker-deamon
+        - clean-docker-images-and-container
+        - git-clone-benchmarks
+        - run-benchmark
+
+- project:
+    name: docker-test-project
+    jobs:
+        - docker-test-project
+        - docker-test-benchmark
