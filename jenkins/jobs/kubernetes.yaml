@@ -1,5 +1,9 @@
 - job-template:
     name: k8s_release_build
+    parameters:
+        - string:
+            name: TAG
+            description: "Git release/tag to be built. e.g: master, v1.3.8, v1.3.9-beta.0 [Default will pull latest release]"
 
     scm:
         - git:
@@ -9,6 +13,7 @@
                 - "*/tags/*"
             basedir: kubernetes
             per-build-tag: false
+            skip-tag: true
     triggers:
         - pollscm:
             cron: "* * * * *"
