@@ -160,7 +160,12 @@ export KUBE_GIT_TREE_STATE="clean"
 export KUBE_GIT_COMMIT=%{commit}
 export KUBE_GIT_VERSION=1.4.0-beta.9
 
+%ifarch ppc64le
 make all GOLDFLAGS="-linkmode external" KUBE_BUILD_PPC64LE=y
+%else
+make all
+%endif
+
 
 hack/update-generated-docs.sh
 

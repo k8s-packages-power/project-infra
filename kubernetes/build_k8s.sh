@@ -22,23 +22,23 @@ echo "DONE"
 
 if [ $# -eq 1 ]
   then
-    latest_stable_kubernetes_version=`git describe --abbrev=0 --tags|cut -c 2-`
+    latest_kubernetes_version=`git describe --tags|cut -c 2-`
   else
     if [ $2 = `git tag -l $2` ]
       then
-        latest_stable_kubernetes_version=`echo $2|cut -c 2-`
+        latest_kubernetes_version=`echo $2|cut -c 2-`
       else
         echo "That is not a valid kubernetes version tag."
         exit 1
     fi
 fi
-latest_stable_kubernetes_commit="`git rev-list v${latest_stable_kubernetes_version}  | head -n 1`"
+latest_stable_kubernetes_commit="`git rev-list v${latest_kubernetes_version}  | head -n 1`"
 short_commit=`echo $latest_stable_kubernetes_commit | cut -c1-7`
 cd ..;
 
 # update the rpm spec file with the latest stable version and commit
-version=$(echo ${latest_stable_kubernetes_version} | cut -f1 -d-)
-sub_version=$(echo ${latest_stable_kubernetes_version} | cut -f2 -d- -s| sed -e 's/\.//g')
+version=$(echo ${latest_kubernetes_version} | cut -f1 -d-)
+sub_version=$(echo ${latest_kubernetes_version} | cut -f2 -d- -s| sed -e 's/\.//g')
 
 sed -i "s/^Version:.*/Version:        ${version}/" rpmbuild/SPECS/kubernetes.spec
 
@@ -49,7 +49,7 @@ else
 fi
 
 sed -i "s/^%global commit.*/%global commit          ${latest_stable_kubernetes_commit}/" rpmbuild/SPECS/kubernetes.spec
-sed -i "s/^export KUBE_GIT_VERSION=.*/export KUBE_GIT_VERSION=${latest_stable_kubernetes_version-${short_commit}}/" rpmbuild/SPECS/kubernetes.spec
+sed -i "s/^export KUBE_GIT_VERSION=.*/export KUBE_GIT_VERSION=${latest_kubernetes_version-${short_commit}}/" rpmbuild/SPECS/kubernetes.spec
 
 # clean up any old builds. tar up the latest stable commit, and throw it into rpmbuild/SOURCES, and prepare for the build
 cd kubernetes; git checkout $latest_stable_kubernetes_commit &> /dev/null; cd ..;
@@ -68,7 +68,7 @@ rm -rf rpmbuild/SOURCES/contrib-*.tar.gz
 tar -c contrib --transform s/contrib/contrib-${con_commit}/ | gzip -9 &> "rpmbuild/SOURCES/contrib-${con_short_commit}.tar.gz"
 
 # start compiling kubernetes
-echo -e "Starting the compilation of kubernetes version: $latest_stable_kubernetes_version \n\n\n"
+echo -e "Starting the compilation of kubernetes version: $latest_kubernetes_version \n\n\n"
 rpmbuild -ba --define "_topdir `pwd`/rpmbuild" rpmbuild/SPECS/kubernetes.spec
 
 if [ $? -eq 0 ]
