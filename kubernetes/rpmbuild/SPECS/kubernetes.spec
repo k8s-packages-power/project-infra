@@ -112,7 +112,7 @@ Kubernetes services for master host
 %package node
 Summary: Kubernetes services for node host
 
-%if 0%{?fedora} >= 21 
+%if 0%{?fedora} >= 21 || 0%{?rhel}
 Requires: docker
 %else
 Requires: docker-io
