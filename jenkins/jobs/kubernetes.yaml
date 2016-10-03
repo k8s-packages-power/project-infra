@@ -21,6 +21,7 @@
         - timestamps
         - workspace-cleanup
     builders:
+        - prereq-build-k8s
         - build-k8s
         - build-name-setter:
             name: 'version.txt'
