@@ -156,3 +156,11 @@
             git clone https://github.com/k8s-packages-power/project-infra.git
             cd project-infra/kubernetes
             ./build_k8s.sh ${WORKSPACE}/kubernetes
+
+- builder:
+    name: prereq-build-k8s
+    builders:
+      - shell: |
+            yum install -y rpm-build which
+            yum groupinstall -y "Development Tools"
+            rpm -ivh ftp://ftp.unicamp.br/pub/linuxpatch/toolchain/at/redhat/RHEL7/at10.0/advance-toolchain-golang-at-10.0-0.ppc64le.rpm
