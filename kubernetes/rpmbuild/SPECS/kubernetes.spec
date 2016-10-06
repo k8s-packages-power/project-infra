@@ -166,8 +166,8 @@ make all GOLDFLAGS="-linkmode external" KUBE_BUILD_PPC64LE=y
 make all
 %endif
 
-
-hack/update-generated-docs.sh
+# generate the documents - both md files and man pages
+hack/generate-docs.sh
 
 # convert md to man
 pushd docs
