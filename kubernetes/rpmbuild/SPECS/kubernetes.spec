@@ -218,6 +218,8 @@ install -d %{buildroot}%{_sharedstatedir}/kubelet
 # place contrib/init/systemd/tmpfiles.d/kubernetes.conf to /usr/lib/tmpfiles.d/kubernetes.conf
 install -d -m 0755 %{buildroot}%{_tmpfilesdir}
 install -p -m 0644 -t %{buildroot}/%{_tmpfilesdir} contrib/init/systemd/tmpfiles.d/kubernetes.conf
+mkdir -p %{buildroot}/run
+install -d -m 0755 %{buildroot}/run/%{name}/
 
 %if 0%{?with_debug}
 # remove porter as it is built inside docker container without options for debug info
@@ -277,6 +279,7 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/config
 %config(noreplace) %{_sysconfdir}/%{name}/controller-manager
 %{_tmpfilesdir}/kubernetes.conf
+%verify(not size mtime md5) %attr(755, kube,kube) %dir /run/%{name}
 
 %files node
 %doc README.md LICENSE CONTRIB.md CONTRIBUTING.md DESIGN.md
@@ -293,6 +296,7 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/kubelet
 %config(noreplace) %{_sysconfdir}/%{name}/proxy
 %{_tmpfilesdir}/kubernetes.conf
+%verify(not size mtime md5) %attr(755, kube,kube) %dir /run/%{name}
 
 %files client
 %doc README.md LICENSE CONTRIB.md CONTRIBUTING.md DESIGN.md
