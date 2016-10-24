@@ -1,0 +1,13 @@
+diff --git a/etcdmain/etcd.go b/etcdmain/etcd.go
+index e78f166..7101168 100644
+--- a/etcdmain/etcd.go
++++ b/etcdmain/etcd.go
+@@ -556,7 +556,7 @@ func setupLogging(cfg *config) {
+ 
+ func checkSupportArch() {
+ 	// TODO qualify arm64
+-	if runtime.GOARCH == "amd64" {
++	if runtime.GOARCH == "amd64" || runtime.GOARCH == "ppc64le" {
+ 		return
+ 	}
+ 	if env, ok := os.LookupEnv("ETCD_UNSUPPORTED_ARCH"); ok && env == runtime.GOARCH {
