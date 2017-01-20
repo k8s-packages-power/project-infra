@@ -40,7 +40,7 @@ cd ..;
 version=$(echo ${latest_kubernetes_version} | cut -f1 -d-)
 sub_version=$(echo ${latest_kubernetes_version} | cut -f2 -d- -s| sed -e 's/\.//g')
 
-sed -i "s/^Version:.*/Version:        ${version}/" rpmbuild/SPECS/kubernetes.spec
+sed -i "s/^%global kube_version.*/%global kube_version	${version}/" rpmbuild/SPECS/kubernetes.spec
 
 if [ ! -z $sub_version ]; then
   sed -i "s/^Release:.*/Release:        1.${sub_version}.git%{shortcommit}%{?dist}/" rpmbuild/SPECS/kubernetes.spec
