@@ -5,4 +5,5 @@ rpmbuild/BUILDROOT/
 rpmbuild/RPMS/
 rpmbuild/SRPMS/
 rpmbuild/SOURCES/contrib*
-rpmbuild/SOURCES/kubernetes*
+rpmbuild/SOURCES/kubernetes/
+rpmbuild/SOURCES/*.tar.gz

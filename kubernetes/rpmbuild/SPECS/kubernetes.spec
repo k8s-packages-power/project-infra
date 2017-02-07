@@ -30,7 +30,7 @@
 %global con_repo            contrib
 # https://github.com/kubernetes/contrib
 %global con_provider_prefix %{con_provider}.%{con_provider_tld}/%{con_project}/%{con_repo}
-%global con_commit          6a097f6ad2c9ae396cc208b6ea6065e524bdc240
+%global con_commit          4dd1aa773d95b1d7e88b1d55db57cd1a4fcdcc58
 %global con_shortcommit %(c=%{con_commit}; echo ${c:0:7})
 
 %global kube_version	1.4.7
